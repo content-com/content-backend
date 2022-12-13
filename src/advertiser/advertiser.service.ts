@@ -1,24 +1,45 @@
 import { Injectable } from '@nestjs/common';
-
+import { Advertiser } from 'src/entities';
+import { AdvertiserRepository } from './advertiser.repository';
+import { UpdateAdvertiserDto } from './dto';
 @Injectable()
 export class AdvertiserService {
-  getAdvertisers(): string {
-    return 'Get advertisers!';
+  constructor(private readonly advertiserRepository: AdvertiserRepository) {}
+  async getAdvertisers(): Promise<Advertiser[]> {
+    const advertisers = await this.advertiserRepository.find();
+    return advertisers;
   }
 
-  getAdvertiser(id: string): string {
-    return `Get advertiser with id ${id}!`;
+  async getAdvertiser(id: number): Promise<Advertiser> {
+    const advertiser = await this.advertiserRepository.findById(id);
+    return advertiser;
   }
 
-  createAdvertiser(): string {
-    return 'Create Advertiser!';
+  async updateAdvertiser(
+    updateAdvertiserDto: UpdateAdvertiserDto
+  ): Promise<Advertiser> {
+    const queryResult = await this.advertiserRepository
+      .createQueryBuilder()
+      .update(updateAdvertiserDto)
+      .where({
+        id: updateAdvertiserDto.id
+      })
+      .returning('*')
+      .execute();
+
+    return queryResult.raw[0];
   }
 
-  updateAdvertiser(): string {
-    return 'Update Advertiser!';
-  }
+  async deleteAdvertiser(id: number): Promise<Advertiser> {
+    const queryResult = await this.advertiserRepository
+      .createQueryBuilder()
+      .delete()
+      .where({
+        id
+      })
+      .returning('*')
+      .execute();
 
-  deleteAdvertiser(id: string): string {
-    return `Delete advertiser with id ${id}!`;
+    return queryResult.raw[0];
   }
 }
